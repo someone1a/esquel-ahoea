@@ -27,8 +27,10 @@
     "extra": {
       "router": {},
       "eas": {
+        "owner": "esquelahorra.app",
         "projectId": "99682284-6316-4266-b9b2-a6a9e900587f"
       }
-    }
+    },
+    "owner": "esquelahorra.app"
   }
 }
