@@ -10,15 +10,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, TrendingDown } from 'lucide-react-native';
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  limit, 
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  limit,
   getDocs,
   or
 } from 'firebase/firestore';
+import { router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -210,7 +211,10 @@ export default function HomeScreen() {
   };
 
   const ProductCard = ({ product }: { product: ProductWithPrice }) => (
-    <View style={styles.productCard}>
+    <TouchableOpacity
+      style={styles.productCard}
+      onPress={() => router.push(`/product/${product.id}`)}
+    >
       <View style={styles.productInfo}>
         <Text style={styles.productName}>{product.nombre}</Text>
         <Text style={styles.productBrand}>{product.marca}</Text>
@@ -224,7 +228,7 @@ export default function HomeScreen() {
           </>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (

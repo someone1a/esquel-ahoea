@@ -21,19 +21,26 @@ export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleBarCodeScanned = async ({ type, data }: any) => {
+    if (scanned || isProcessing) return;
+
     setScanned(true);
+    setIsProcessing(true);
     setCameraActive(false);
 
     try {
-      // Check if product exists
+      console.log('Barcode scanned:', data);
+
       const productQuery = query(
         collection(db, 'products'),
         where('codigo_barras', '==', data)
       );
-      
+
       const productSnapshot = await getDocs(productQuery);
+      console.log('Products found:', productSnapshot.size);
+
       const existingProduct = productSnapshot.empty ? null : {
         id: productSnapshot.docs[0].id,
         ...productSnapshot.docs[0].data(),
@@ -41,7 +48,7 @@ export default function ScannerScreen() {
       } as Product;
 
       if (existingProduct) {
-        // Product exists, navigate to product detail
+        console.log('Product found:', existingProduct.nombre);
         Alert.alert(
           'Producto encontrado',
           `${existingProduct.nombre} - ${existingProduct.marca}`,
@@ -54,13 +61,14 @@ export default function ScannerScreen() {
               text: 'Escanear otro',
               onPress: () => {
                 setScanned(false);
+                setIsProcessing(false);
                 setCameraActive(true);
               },
             },
           ]
         );
       } else {
-        // Product doesn't exist, offer to create it
+        console.log('Product not found, barcode:', data);
         Alert.alert(
           'Producto no encontrado',
           'Este producto no está en nuestra base de datos. ¿Quieres agregarlo?',
@@ -76,6 +84,7 @@ export default function ScannerScreen() {
               text: 'Escanear otro',
               onPress: () => {
                 setScanned(false);
+                setIsProcessing(false);
                 setCameraActive(true);
               },
             },
@@ -84,9 +93,12 @@ export default function ScannerScreen() {
       }
     } catch (error: any) {
       console.error('Error checking product:', error);
-      
-      // Handle offline error specifically
-      if (error?.code === 'unavailable' || error?.message?.includes('offline')) {
+      console.error('Error code:', error?.code);
+      console.error('Error message:', error?.message);
+
+      const errorMessage = error?.message || 'Error desconocido';
+
+      if (error?.code === 'unavailable' || errorMessage.includes('offline')) {
         Alert.alert(
           'Sin conexión',
           'No hay conexión a internet. Por favor verifica tu conexión e intenta nuevamente.',
@@ -95,12 +107,16 @@ export default function ScannerScreen() {
               text: 'Reintentar',
               onPress: () => {
                 setScanned(false);
+                setIsProcessing(false);
                 setCameraActive(true);
               },
             },
             {
               text: 'Cancelar',
-              onPress: () => setScanned(false),
+              onPress: () => {
+                setScanned(false);
+                setIsProcessing(false);
+              },
               style: 'cancel',
             },
           ]
@@ -108,18 +124,22 @@ export default function ScannerScreen() {
       } else {
         Alert.alert(
           'Error',
-          'No se pudo procesar el código de barras. Intenta nuevamente.',
+          `No se pudo procesar el código de barras: ${errorMessage}`,
           [
             {
               text: 'Reintentar',
               onPress: () => {
                 setScanned(false);
+                setIsProcessing(false);
                 setCameraActive(true);
               },
             },
             {
               text: 'Cancelar',
-              onPress: () => setScanned(false),
+              onPress: () => {
+                setScanned(false);
+                setIsProcessing(false);
+              },
               style: 'cancel',
             },
           ]
@@ -130,12 +150,14 @@ export default function ScannerScreen() {
 
   const startScanning = () => {
     setScanned(false);
+    setIsProcessing(false);
     setCameraActive(true);
   };
 
   const stopScanning = () => {
     setCameraActive(false);
     setScanned(false);
+    setIsProcessing(false);
   };
 
   if (!permission) {
@@ -170,7 +192,7 @@ export default function ScannerScreen() {
         <View style={styles.cameraContainer}>
           <CameraView
             style={styles.camera}
-            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
             barcodeScannerSettings={{
               barcodeTypes: ['qr', 'pdf417', 'ean13', 'ean8', 'code128', 'code39'],
             }}
