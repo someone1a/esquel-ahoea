@@ -55,9 +55,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (userDoc.exists()) {
         const data = userDoc.data();
         setProfile({
+          id: userId,
           ...data,
           fecha_registro: data.fecha_registro?.toDate() || new Date(),
         } as UserProfile);
+      } else {
+        console.log('User profile document does not exist for userId:', userId);
       }
     } catch (error: any) {
       console.error('Error fetching profile:', error);

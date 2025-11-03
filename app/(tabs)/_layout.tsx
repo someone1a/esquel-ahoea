@@ -53,17 +53,16 @@ export default function TabLayout() {
           ),
         }}
       />
-      {isSupervisor && (
-        <Tabs.Screen
-          name="supervisor"
-          options={{
-            title: 'Supervisor',
-            tabBarIcon: ({ size, color }) => (
-              <Shield size={size} color={color} />
-            ),
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="supervisor"
+        options={{
+          title: 'Supervisor',
+          tabBarIcon: ({ size, color }) => (
+            <Shield size={size} color={color} />
+          ),
+          href: isSupervisor ? '/(tabs)/supervisor' : null,
+        }}
+      />
     </Tabs>
   );
 }
